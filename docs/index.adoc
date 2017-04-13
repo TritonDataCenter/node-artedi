@@ -1,0 +1,11 @@
+:toc: left
+:source-highlighter: pygments
+:doctype: book
+:idprefix:
+:docinfo:
+
+include::../README.adoc[]
+
+include::api.adoc[]
+
+# Other documentation

@@ -1,0 +1,31 @@
+:toc: left
+:source-highlighter: pygments
+:doctype: book
+:idprefix:
+:docinfo:
+
+# artedi
+
+## About
+
+`artedi` is a node.js library for measuring fish -- specifically, the fish
+being the services involved in Manta, the Triton Object Store.
+
+## Installation
+
+```
+npm install artedi
+```
+
+## License
+
+MPL-v2
+
+## Contributing
+
+Contributions should be made via the https://cr.joyent.us[Joyent Gerrit].
+
+## Reading documentation online
+
+You can view the https://joyent.github.io/node-artedi[full API documentation]
+rendered online.

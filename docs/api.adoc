@@ -1,0 +1,9 @@
+:toc: left
+:source-highlighter: pygments
+:doctype: book
+:idprefix:
+:docinfo:
+
+:sectnums:
+# API
+

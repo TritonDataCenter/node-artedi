@@ -1,0 +1,30 @@
+{
+  "name": "artedi",
+  "version": "0.1.0",
+  "description": "measuring fish",
+  "main": "lib/index.js",
+  "dependencies": {
+    "assert-plus": ">=1.0.0 <2.0.0",
+    "bunyan": ">=1.5.1 <2.0.0",
+    "mooremachine": ">=2.1.0 <3.0.0",
+    "vasync": ">=1.6.3 <2.0.0",
+    "verror": ">=1.6.1 <2.0.0"
+  },
+  "optionalDependencies": {
+    "dtrace-provider": "~0.8"
+  },
+  "devDependencies": {
+    "tape": ">=4.4.0 <5.0.0",
+    "sinon": ">=1.17.3 <2.0.0",
+    "json": ">=9.0.3 <10.0.0",
+    "restify": "^4.3.0"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "tape test/*.test.js"
+  },
+  "author": "",
+  "license": "MPL-2.0"
+}
