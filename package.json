@@ -1,23 +1,24 @@
 {
   "name": "artedi",
-  "version": "0.1.0",
-  "description": "measuring fish",
-  "main": "lib/index.js",
+  "version": "1.0.0",
+  "description": "a metric client library",
+  "main": "lib/collector.js",
   "dependencies": {
-    "assert-plus": ">=1.0.0 <2.0.0",
-    "bunyan": ">=1.5.1 <2.0.0",
-    "mooremachine": ">=2.1.0 <3.0.0",
-    "vasync": ">=1.6.3 <2.0.0",
-    "verror": ">=1.6.1 <2.0.0"
-  },
-  "optionalDependencies": {
-    "dtrace-provider": "~0.8"
+    "assert-plus": "1.0.0",
+    "jsprim": "1.4.0",
+    "md5": "2.2.1",
+    "vasync": "1.6.4",
+    "verror": "1.10.0"
   },
   "devDependencies": {
-    "tape": ">=4.4.0 <5.0.0",
-    "sinon": ">=1.17.3 <2.0.0",
-    "json": ">=9.0.3 <10.0.0",
-    "restify": "^4.3.0"
+    "eslint": "2.13.1",
+    "eslint-plugin-joyent": "1.1.0",
+    "json": "9.0.6",
+    "tape": "4.6.3"
+  },
+  "repository": {
+    "url": "https://github.com/joyent/node-artedi.git",
+    "type": "git"
   },
   "engines": {
     "node": ">=0.10.0"
@@ -25,6 +26,6 @@
   "scripts": {
     "test": "tape test/*.test.js"
   },
-  "author": "",
+  "author": "Joyent, Inc",
   "license": "MPL-2.0"
 }

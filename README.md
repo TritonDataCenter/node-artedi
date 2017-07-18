@@ -1,12 +1,15 @@
 # artedi
+README.md to be populated after review of [RFD 99](https://github.com/joyent/rfd/tree/master/rfd/0099).
 
-<!--
-This file is here because npm doesn't support any format except markdown for
-README files. This way people browsing the package on npmjs.com will get a
-link to the documentation instead of nothing.
+## License
 
-GitHub prefers .adoc files to .md, so it will render the correct README for
-the repository root.
--->
+MPL-v2
 
-See the [documentation](https://joyent.github.io/node-artedi).
+## Contributing
+
+Contributions should be made via the [Joyent Gerrit](https://cr.joyent.us).
+
+## Reading documentation online
+
+You can view the [full API documentation](https://joyent.github.io/node-artedi)
+rendered online.
