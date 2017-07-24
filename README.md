@@ -1,12 +1,88 @@
-# artedi
+# node-artedi: client library for metric collection
 
-<!--
-This file is here because npm doesn't support any format except markdown for
-README files. This way people browsing the package on npmjs.com will get a
-link to the documentation instead of nothing.
+## About
+`artedi` is a Node.js library for measuring applications -- specifically, the
+services composing Triton and Manta.
 
-GitHub prefers .adoc files to .md, so it will render the correct README for
-the repository root.
--->
+## Sample Usage
+Here is a simple example usage of counters and histograms to expose
+metrics in the Prometheus v0.0.4 text format.
 
-See the [documentation](https://joyent.github.io/node-artedi).
+```javascript
+var artedi = require('artedi');
+
+// collectors are the 'parent' collector.
+var collector = artedi.createCollector();
+
+// counters are a 'child' collector.
+// This call is idempotent.
+var counter = collector.counter({
+    name: 'http_requests_completed',
+    help: 'count of muskie http requests completed',
+    labels: {
+        zone: ZONENAME
+    }
+});
+
+// Add 1 to the counter with the labels 'method=getobject,code=200'.
+counter.increment({
+    method: 'getobject',
+    code: '200'
+});
+
+collector.collect(artedi.FMT_PROM, function (err, metrics) {
+    console.log(metrics);
+    // Prints:
+    // # HELP http_requests_completed count of muskie http requests completed
+    // # TYPE http_requests_completed counter
+    // http_requests_completed{zone="e5d3",method="getobject",code="200"} 1
+});
+
+var histogram = collector.histogram({
+    name: 'http_request_latency_ms',
+    help: 'latency of muskie http requests'
+});
+
+// Observe a latency of 998ms for a 'putobjectdir' request.
+histogram.observe(998, {
+    method: 'putobjectdir'
+});
+
+// For each bucket, we get a count of the number of requests that fall
+// below or at the latency upper-bound of the bucket.
+// This output is defined by Prometheus.
+collector.collect(artedi.FMT_PROM, function (err, metrics) {
+    if (err) {
+        throw new VError(err, 'could not collect metrics');
+    }
+    console.log(metrics);
+    // Prints:
+    // # HELP http_requests_completed count of muskie http requests completed
+    // # TYPE http_requests_completed counter
+    // http_requests_completed{zone="e5d3",method="getobject",code="200"} 1
+    // # HELP http_request_latency_ms latency of muskie http requests
+    // # TYPE http_request_latency_ms histogram
+    // http_request_latency_ms{le="729"} 0 1499645380000
+    // http_request_latency_ms{le="2187"} 1 1499645380000
+    // http_request_latency_ms{le="3645"} 0 1499645380000
+    // http_request_latency_ms{le="5103"} 0 1499645380000
+    // http_request_latency_ms{le="6561"} 0 1499645380000
+    // http_request_latency_ms{le="+Inf"} 1 1499645380000
+    // http_request_latency_ms_count{} 1 1499645380000
+    // http_request_latency_ms_sum{} 998 1499645380000
+});
+```
+
+For more advanced usage and full API documentation, see
+[docs/API.md](./docs/API.md).
+
+## Installation
+```
+npm install artedi
+```
+
+## License
+MPL-v2
+
+## Contributing
+Contributions should be made via the [Joyent Gerrit](https://cr.joyent.us).

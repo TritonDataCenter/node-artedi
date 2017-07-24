@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2014, Joyent, Inc.
+# Copyright (c) 2017, Joyent, Inc.
 #
 
 #
@@ -180,7 +180,7 @@ check-bash: $(BASH_FILES:%=%.bashchk) $(BASH_FILES:%=%.bashstyle)
 .PHONY: check-json
 check-json: $(JSON_FILES:%=%.jsonchk)
 
-%.jsonchk: % $(JSON)
+%.jsonchk: %
 	$(JSON) --validate -f $^
 
 #
@@ -208,8 +208,13 @@ JSSTYLE_TARGET = $(if $(JSSTYLE_FILES), check-jsstyle)
 check-jsstyle:  $(JSSTYLE_EXEC)
 	$(JSSTYLE) $(JSSTYLE_FLAGS) $(JSSTYLE_FILES)
 
+.PHONY: check-esl
+$(ESLINT): | $(NPM_EXEC)
+	$(NPM) install
+
 .PHONY: check
-check:: check-jsl check-json $(JSSTYLE_TARGET) check-bash
+check:: $(ESLINT) check-json $(JSSTYLE_TARGET) check-bash
+	$(ESLINT) -c $(ESLINT_CONF) $(ESLINT_FILES)
 	@echo check ok
 
 .PHONY: clean
