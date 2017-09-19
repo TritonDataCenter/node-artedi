@@ -274,9 +274,8 @@ period. At collection time, the each of the metrics in the 'trigger registry'
 could be invoked. This is similar to existing solutions, like
 [boolean health checks](http://metrics.dropwizard.io/3.2.2/getting-started.html#health-checks).
 
-Further implementation details have to be worked out when we implement Triggered
-Metrics. Triggered Metrics will be implemented soon after the initial release,
-as they're a necessary feature to efficiently gather some types of metrics.
+Basic triggered metrics (type 1 from above) are implemented in node-artedi
+version 1.1.0. Type 2 triggered metrics are not yet implemented.
 
 ### Children are leaf collectors
 Children cannot be created from children. That is, a user can't call

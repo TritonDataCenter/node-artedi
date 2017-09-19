@@ -2,7 +2,6 @@
 * [Collector](#collector)
 * [Counter](#counter)
 * [Gauge](#gauge)
-* [Absolute Gauge](#absolutegauge)
 * [Histogram](#histogram)
 
 ## Intro
@@ -49,7 +48,7 @@ var counter = collector.counter({
 });
 ```
 ### collector.gauge(opts) : Gauge
-Create a new Gauge object with the given options (incl. labels). This call is
+Creates a new Gauge object with the given options (incl. labels). This call is
 idempotent. `opts` must include 'help' and 'name' fields, and may optionally
 include a 'labels' object.
 
@@ -63,7 +62,6 @@ var gauge = collector.gauge({
     }
 });
 ```
-
 ### collector.histogram(opts) : Histogram
 Creates a new Histogram object with the given options (incl. labels). This call
 is idempotent. `opts` must include 'help' and 'name' fields, and may optionally
@@ -80,9 +78,37 @@ var histogram = collector.histogram({
 });
 ```
 
+### collector.addTriggerFunction(func(Collector, callback))
+Adds `func` to a list of triggers to call immediately before metrics are
+collected during a call to `collector.collect()`.
+
+`func` must take 'callback' and 'collector' arguments and invoke the callback to
+signal the end of the trigger. The callback can be invoked with an Error
+argument if an error occurs during trigger execution.
+
+The Collector that is passed into the trigger is a handle to the Collector that
+the trigger was registered with.
+
+Example:
+```javascript
+function myTrigger(m_collector, cb) {
+    var my_counter = m_collector.getCollector('http_requests_completed');
+    my_counter.increment(); // Increment a counter.
+    cb(null); // No error occurred.
+}
+
+collector.addTriggerFunction(myTrigger);
+```
+
 ### collector.collect(format, callback(err, string))
-Iterate through the list of previously-instantiated collectors, calling the
-serialization function corresponding to `format` on each collector.
+Iterates through the list of previously provided trigger functions, invoking
+each trigger. Triggers are invoked in parallel. After all of the trigger
+functions have returned, the previously-instantiated collectors serialize their
+metrics in the provided format.
+
+If an error occurs during the execution of either triggers or collector
+serialization, collection will stop and an error will be returned through the
+callback.
 
 Valid values for `format` are in the global `artedi` namespace. Currently, the
 valid values are `FMT_PROM` and `FMT_PROM_0_0_4`. `FMT_PROM` will always point
@@ -99,6 +125,16 @@ collector.collect(artedi.FMT_PROM, function (err, str) {
     console.log(str);
 });
 ```
+
+### collector.getCollector(name) : child collector
+Finds a child collector with the given `name`, and returns it, if it exists. If
+the collector doesn't exist, `null` is returned.
+
+Example:
+```javascript
+var my_counter = collector.getCollector('http_requests_completed');
+```
+
 ## Counter
 Counters are the most simple of the collector types. They simply count
 up starting from zero. You can either increment a counter, or add
@@ -128,8 +164,8 @@ counter.add(100, {
 
 ## Gauge
 Gauges are similar to counters. Gauges can count up, or count down relative
-to their current value. Gauges start with an initial value of `0`. If you want
-a gauge that can be set to arbitrary values, look at [AbsoluteGauge](#absolutegauge).
+to their current value, or be set to an arbitrary value. Gauges start with an
+initial value of `0`.
 
 ### gauge.add(value, labels)
 Add `value` to the metric represented by `labels`.
@@ -141,22 +177,12 @@ gauge.add(10, {
 });
 ```
 
-## AbsoluteGauge
-AbsoluteGauges are metrics that can only be set to an arbitrary value. These are
-useful for tracking things like the current amount of memory available on a
-system, or the async lag of a postgres peer. If you need to 'move' a gauge
-relative to its current position, you probably want to use [Gauge](#gauge)
-instead.
-
-### absoluteGauge.set(value, labels)
+### gauge.set(value, labels)
 Set the metric represented by `labels` to `value`.
-
-The `AbsoluteGauge` object has not yet been implemented. `AbsoluteGauge` is
-going to be implemented in one of the first post-1.0 releases.
 
 Example:
 ```javascript
-absoluteGauge.set(123, {
+gauge.set(123, {
     tableName: 'manta'
 });
 ```
