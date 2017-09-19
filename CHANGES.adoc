@@ -1,9 +1,0 @@
-:toc: macro
-
-# Changelog
-
-toc::[]
-
-## v0.x
-
-### unreleased

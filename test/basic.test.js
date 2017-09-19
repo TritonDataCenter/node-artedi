@@ -161,6 +161,32 @@ mod_tape('label tests', function (t) {
     t.end();
 });
 
+mod_tape('absolute gauge tests', function (t) {
+    var collector = mod_artedi.createCollector();
+    var abs_gauge = collector.gauge({
+        name: 'my_abs_gauge',
+        help: 'abs gauge help'
+    });
+
+    abs_gauge.set(100, {});
+    t.equals(abs_gauge.metricVec.getDefault().value, 100,
+            'basic absolute gauge set value');
+
+    abs_gauge.set(0, {});
+    t.equals(abs_gauge.metricVec.getDefault().value, 0,
+            'basic absolute gauge set value to zero');
+
+    abs_gauge.set(-1000.1234, {});
+    t.equals(abs_gauge.metricVec.getDefault().value, -1000.1234,
+            'basic absolute gauge set value to negative float');
+
+    t.throws(function () {
+        abs_gauge.set('hello', {});
+    }, 'set gauge value to a string');
+
+    t.end();
+});
+
 /*
  * Test that prometheus serialization happens properly.
  * A few things to test:
@@ -182,12 +208,21 @@ mod_tape('counter serialization tests', function (t) {
     // serially so we can accurately predict what collector.collect will output.
     mod_vasync.pipeline({ funcs: [
         function (_, cb) {
+            // Improper serialization format.
+            collector.collect('INVALID_FORMAT', function (err, str) {
+                t.ok(err, 'error present for invalid serialization format');
+                t.notOk(str, 'no metrics returned with serialization error');
+                cb();
+            });
+        },
+
+        function (_, cb) {
             // No metrics present, so we should just see the comments.
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for no metrics');
                 t.equals(str, expected, 'no metrics, only comments');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -196,14 +231,13 @@ mod_tape('counter serialization tests', function (t) {
                 user: 'kkantor'
             });
 
-            resetTimestamps(counter.metricVec);
             var oneDemerit = expected +
-                'bot_demerits{trollcon="4",user="kkantor"} 1 0\n';
+                'bot_demerits{trollcon="4",user="kkantor"} 1\n';
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for two labels');
                 t.equals(str, oneDemerit, 'two label increment');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -213,16 +247,15 @@ mod_tape('counter serialization tests', function (t) {
                 trollcon: '4'
             });
 
-            resetTimestamps(counter.metricVec);
             /* BEGIN JSSTYLED */
             // eslint-disable-next-line max-len
-            var lots = expected + 'bot_demerits{trollcon="4",user="kkantor"} 1001 0\n';
+            var lots = expected + 'bot_demerits{trollcon="4",user="kkantor"} 1001\n';
             /* END JSSTYLED */
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for reversed labels');
                 t.equals(str, lots, 'reversed label add');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -235,17 +268,16 @@ mod_tape('counter serialization tests', function (t) {
             counter.increment();
             counter.increment();
 
-            resetTimestamps(counter.metricVec);
             expected = '' +
                 '# HELP test help\n' +
                 '# TYPE test ' + common.COUNTER + '\n' +
-                'test{} 3 0\n';
+                'test{} 3\n';
 
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for default counter');
                 t.equals(str, expected, 'default counter');
+                cb();
             });
-            cb();
         }]
     }, function (_, result) {
         t.end();
@@ -268,8 +300,8 @@ mod_tape('histogram serialization tests', function (t) {
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for no metrics');
                 t.equals(str, expected, 'no labels or data points');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -278,25 +310,20 @@ mod_tape('histogram serialization tests', function (t) {
             });
 
             expected = expected +
-                'bot_trolololol{key="value",le="1"} 1 0\n' +
-                'bot_trolololol{key="value",le="3"} 1 0\n' +
-                'bot_trolololol{key="value",le="5"} 1 0\n' +
-                'bot_trolololol{key="value",le="7"} 1 0\n' +
-                'bot_trolololol{key="value",le="9"} 1 0\n' +
-                'bot_trolololol{le="+Inf",key="value"} 1 0\n' +
-                'bot_trolololol_count{key="value"} 1 0\n' +
-                'bot_trolololol_sum{key="value"} 1 0\n';
-
-            resetTimestamps(histogram.gauge.metricVec);
-            Object.keys(histogram.counters).forEach(function (counter) {
-                resetTimestamps(histogram.counters[counter].metricVec);
-            });
+                'bot_trolololol{key="value",le="1"} 1\n' +
+                'bot_trolololol{key="value",le="3"} 1\n' +
+                'bot_trolololol{key="value",le="5"} 1\n' +
+                'bot_trolololol{key="value",le="7"} 1\n' +
+                'bot_trolololol{key="value",le="9"} 1\n' +
+                'bot_trolololol{le="+Inf",key="value"} 1\n' +
+                'bot_trolololol_count{key="value"} 1\n' +
+                'bot_trolololol_sum{key="value"} 1\n';
 
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for single label');
                 t.equals(str, expected, 'single label');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -316,26 +343,21 @@ mod_tape('histogram serialization tests', function (t) {
             expected = '' +
                 '# HELP http_request_latency latency of requests\n' +
                 '# TYPE http_request_latency ' + common.HISTOGRAM + '\n' +
-                'http_request_latency{service="muskie",le="81"} 0 0\n' +
-                'http_request_latency{service="muskie",le="243"} 1 0\n' +
-                'http_request_latency{service="muskie",le="405"} 1 0\n' +
-                'http_request_latency{service="muskie",le="567"} 1 0\n' +
-                'http_request_latency{service="muskie",le="729"} 1 0\n' +
-                'http_request_latency{le="+Inf",service="muskie"} 1 0\n' +
-                'http_request_latency_count{service="muskie"} 1 0\n' +
-                'http_request_latency_sum{service="muskie"} 99 0\n';
-
-            resetTimestamps(histogram.gauge.metricVec);
-            Object.keys(histogram.counters).forEach(function (counter) {
-                resetTimestamps(histogram.counters[counter].metricVec);
-            });
+                'http_request_latency{service="muskie",le="81"} 0\n' +
+                'http_request_latency{service="muskie",le="243"} 1\n' +
+                'http_request_latency{service="muskie",le="405"} 1\n' +
+                'http_request_latency{service="muskie",le="567"} 1\n' +
+                'http_request_latency{service="muskie",le="729"} 1\n' +
+                'http_request_latency{le="+Inf",service="muskie"} 1\n' +
+                'http_request_latency_count{service="muskie"} 1\n' +
+                'http_request_latency_sum{service="muskie"} 99\n';
 
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for collector labels');
                 t.equals(str, expected, 'Collector labels and no Histogram' +
                     ' labels');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -361,29 +383,23 @@ mod_tape('histogram serialization tests', function (t) {
             expected = '' +
             '# HELP web_conn_alive_time connection alive time\n' +
             '# TYPE web_conn_alive_time ' + common.HISTOGRAM + '\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="81"} 0 0\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="243"} 1 0\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="405"} 1 0\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="567"} 1 0\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="729"} 1 0\n' +
-            'web_conn_alive_time{le="+Inf",service="muskie",component="qball"} 1 0\n' +
-            'web_conn_alive_time_count{service="muskie",component="qball"} 1 0\n' +
-            'web_conn_alive_time_sum{service="muskie",component="qball"} 101 0\n';
+            'web_conn_alive_time{service="muskie",component="qball",le="81"} 0\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="243"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="405"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="567"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="729"} 1\n' +
+            'web_conn_alive_time{le="+Inf",service="muskie",component="qball"} 1\n' +
+            'web_conn_alive_time_count{service="muskie",component="qball"} 1\n' +
+            'web_conn_alive_time_sum{service="muskie",component="qball"} 101\n';
             /* eslint-enable */
             /* END JSSTYLED */
 
-            resetTimestamps(histogram.gauge.metricVec);
-            Object.keys(histogram.counters).forEach(function (counter) {
-                resetTimestamps(histogram.counters[counter].metricVec);
-            });
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for inherited labels');
                 t.equals(str, expected, 'inherited Histogram and Collector' +
                     ' labels');
+                cb();
             });
-
-
-            cb();
         },
 
         function (_, cb) {
@@ -413,27 +429,23 @@ mod_tape('histogram serialization tests', function (t) {
             var expected4 = '' +
             '# HELP webapi_conn_alive_time connection alive time\n' +
             '# TYPE webapi_conn_alive_time ' + common.HISTOGRAM + '\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="81"} 0 0\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="243"} 1 0\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="405"} 1 0\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="567"} 1 0\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="729"} 1 0\n' +
-            'webapi_conn_alive_time{le="+Inf",err="ECONNRESET",service="muskie",component="cueball"} 1 0\n' +
-            'webapi_conn_alive_time_count{err="ECONNRESET",service="muskie",component="cueball"} 1 0\n' +
-            'webapi_conn_alive_time_sum{err="ECONNRESET",service="muskie",component="cueball"} 101 0\n';
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="81"} 0\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="243"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="405"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="567"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="729"} 1\n' +
+            'webapi_conn_alive_time{le="+Inf",err="ECONNRESET",service="muskie",component="cueball"} 1\n' +
+            'webapi_conn_alive_time_count{err="ECONNRESET",service="muskie",component="cueball"} 1\n' +
+            'webapi_conn_alive_time_sum{err="ECONNRESET",service="muskie",component="cueball"} 101\n';
             /* eslint-enable */
             /* END JSSTYLED */
 
-            resetTimestamps(histogram.gauge.metricVec);
-            Object.keys(histogram.counters).forEach(function (counter) {
-                resetTimestamps(histogram.counters[counter].metricVec);
-            });
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for dynamic and static labels');
                 t.equals(str, expected4, 'dynamic labels, and static labels' +
                     ' from Histogram and Collector');
+                cb();
             });
-            cb();
         },
 
         function (_, cb) {
@@ -445,35 +457,31 @@ mod_tape('histogram serialization tests', function (t) {
 
             histogram.observe(1);
             histogram.observe(100);
-            resetTimestamps(histogram.gauge.metricVec);
-            Object.keys(histogram.counters).forEach(function (counter) {
-                resetTimestamps(histogram.counters[counter].metricVec);
-            });
             // TODO We should have the +Inf label at the end. This works, but
             // it would look nicer.
             expected = '' +
                 '# HELP test_test1 testhelp\n' +
                 '# TYPE test_test1 ' + common.HISTOGRAM + '\n' +
-                'test_test1{le="1"} 1 0\n' +
-                'test_test1{le="3"} 1 0\n' +
-                'test_test1{le="5"} 1 0\n' +
-                'test_test1{le="7"} 1 0\n' +
-                'test_test1{le="9"} 1 0\n' +
-                'test_test1{le="+Inf"} 2 0\n' +
-                'test_test1{le="81"} 1 0\n' +
-                'test_test1{le="243"} 2 0\n' +
-                'test_test1{le="405"} 2 0\n' +
-                'test_test1{le="567"} 2 0\n' +
-                'test_test1{le="729"} 2 0\n' +
-                'test_test1_count{} 2 0\n' +
-                'test_test1_sum{} 101 0\n';
+                'test_test1{le="1"} 1\n' +
+                'test_test1{le="3"} 1\n' +
+                'test_test1{le="5"} 1\n' +
+                'test_test1{le="7"} 1\n' +
+                'test_test1{le="9"} 1\n' +
+                'test_test1{le="+Inf"} 2\n' +
+                'test_test1{le="81"} 1\n' +
+                'test_test1{le="243"} 2\n' +
+                'test_test1{le="405"} 2\n' +
+                'test_test1{le="567"} 2\n' +
+                'test_test1{le="729"} 2\n' +
+                'test_test1_count{} 2\n' +
+                'test_test1_sum{} 101\n';
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for copying bucket values');
                 t.equals(str, expected, 'initial values copied from ' +
                     'low-order buckets to high-order buckets');
+                cb();
             });
 
-            cb();
         }]
     }, function (_, result) {
         t.end();
@@ -529,8 +537,34 @@ mod_tape('odd value tests', function (t) {
     t.end();
 });
 
-function resetTimestamps(metricVec) {
-    Object.keys(metricVec.metrics).forEach(function (metric) {
-        metricVec.metrics[metric].timestamp = 0;
+/*
+ * Test basic functionality for triggers.
+ *
+ * This test primarily checks if a trigger function gets called.
+ *
+ * The previous tests will have already tested if metric serialization works
+ * _without_ having specified any triggers.
+ */
+mod_tape('basic trigger tests', function (t) {
+    var collector = mod_artedi.createCollector();
+    collector.counter({
+        name: 'test_counter',
+        help: 'test help'
     });
-}
+    var called = false;
+
+    collector.addTriggerFunction(function triggerTest(coll, cb) {
+        t.ok(coll, 'collector object present');
+        var my_counter = coll.getCollector('test_counter');
+        t.ok(my_counter, 'collector object correct');
+        t.equals(my_counter.name, 'test_counter', 'counter object is valid');
+        called = true;
+        cb();
+    });
+
+    collector.collect(mod_artedi.FMT_PROM, function (err, _) {
+        t.notOk(err, 'no error from triggered metrics');
+        t.ok(called, 'trigger function called');
+        t.end();
+    });
+});

@@ -106,17 +106,22 @@ API.md by describing the private functions, as well as 'class variables'.
 | Variable | Type | Value |
 |----------|------|-----------------|
 |registry  | object | key/value mapping of unique collector names -> child collectors|
+|triggerRegistry | array | Array of trigger functions |
 
 `registry` keeps references to all of the previously-instantiated child
 collectors. When it is time to serialize metrics, the Collector iterates through
 this map and calls the serialization method of choice on each child collector.
 The results are concatenated and returned to the user.
 
+`triggerRegistry` keeps references to functions that will be invoked before
+metrics are collected. See collector.processTriggers() for more information.
+
 | Function | Arguments | Result | Return Value|
 |----------|-----------|--------|-------------|
 |Collector | opts      | see `createCollector()`| see `createCollector()`|
 |register  |collector object|if the given collector has already been registered, returns an error. Otherwise, adds the collector to `registry`|error, or null|
-|getCollector|name|returns the collector with the full name of `name`, or null if not present in `registry`|collector object, or null|
+|processTriggers | array, callback | Iterates through triggers in the triggerRegistry, calling each function |
+|processCollectors | array, callback | Iterates through child collectors in the registry, calling a serialization function on each|
 
 `Collector()` is called by the public `createCollector` function.
 
@@ -153,25 +158,6 @@ The results are concatenated and returned to the user.
 |prometheus|callback   |returns all of the Gauge's metrics in prometheus format as a string|None (string and error via callback)|
 
 `Gauge()` is called by the Collector object's `gauge()` function.
-
-### AbsoluteGauge
-AbsoluteGauge is not yet implemented.
-
-| Variable | Type | Value |
-|----------|------|-----------------|
-|name|string|full name of what is being tracked, resulting from concatenation of namespace, subsystem, and collector name|
-|help|string|user-provided string explaining this collector|
-|metricVec|MetricVector|empty to start, is populated as the user performs metric operations|
-|type|string|'gauge,' used during serialization|
-|staticLabels|object|key/value mapping of labels that will be present in all metrics collected by this collector|
-
-| Function | Arguments | Result | Return Value|
-|----------|-----------|--------|-------------|
-|AbsoluteGauge |parent, opts|creates an AbsoluteGauge object from traits available in the parent, and options passed in|a new AbsoluteGauge object|
-|labels|object|returns a metric that have *exactly* the label key/value pairs provided. If none exists, one is created|A Metric object|
-|prometheus|callback   |returns all of the Gauge's metrics in prometheus format as a string|None (string and error via callback)|
-
-`AbsoluteGauge()` is called by the Collector object's `absoluteGauge()` function.
 
 ### Histogram
 | Variable | Type | Value |
