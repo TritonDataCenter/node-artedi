@@ -568,3 +568,43 @@ mod_tape('basic trigger tests', function (t) {
         t.end();
     });
 });
+
+/*
+ * Make sure log/linear buckets are working properly.
+ */
+mod_tape('log/linear bucket tests', function (t) {
+    var collector = mod_artedi.createCollector();
+    var histo = collector.histogram({
+        name: 'test_histogram',
+        help: 'test help'
+    });
+    var value;
+
+    /*
+     * Make sure we are copying values from lower to upper buckets properly.
+     * This is a result of MORAY-447, where we saw an overlapping bucket have
+     * its value doubled.
+     *
+     * To test the fix, we will:
+     *  - Create a set of small buckets.
+     *  - Create a set of large buckets.
+     *    - This should copy the values from the small buckets to large buckets.
+     *  - Record a value in the bucket below the smallest of the large buckets.
+     *    - Previously this would result in the lower values being re-copied to
+     *      the smallest of the large buckets (6561).
+     *    - Now it should correctly identify that the 6561 bucket already exists
+     *      meaning lower values should not be re-copied to the overlapping
+     *      bucket.
+     */
+    histo.observe(10); // Record three small values.
+    histo.observe(10);
+    histo.observe(10);
+    histo.observe(6562); // Record a value which will create larger buckets.
+    histo.observe(5103); // Record a value below the smallest larger bucket.
+
+    value = histo.defaultCounter().labels({'le': 6561}).value;
+    t.equals(value, 4, 'overlapping bucket values copied correctly');
+
+
+    t.end();
+});
