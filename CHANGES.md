@@ -3,6 +3,9 @@
 ## Not yet released
 None
 
+## 1.2.0
+* #9 Create an accessor function for collector values
+
 ## 1.1.1
 * [MORAY-447](https://smartos.org/bugview/MORAY-447) strange latency data point
     in reported moray metrics

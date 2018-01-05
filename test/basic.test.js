@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 var mod_tape = require('tape');
@@ -12,6 +12,55 @@ var mod_vasync = require('vasync');
 var mod_artedi = require('..');
 
 var common = require('../lib/common.js');
+
+var VError = require('verror').VError;
+
+/*
+ * Make sure we can get raw values.
+ */
+mod_tape('getValue tests', function (t) {
+    var collector = mod_artedi.createCollector();
+    var counter = collector.counter({
+        name: 'test',
+        help: 'test'
+    });
+    t.equals(counter.getValue(), 0, 'default counter should start at zero');
+
+    counter = collector.counter({
+        name: 'better_test',
+        help: 'test',
+        labels: {
+            'something': 'important'
+        }
+    });
+    counter.increment();
+    t.equals(counter.getValue(), 1, 'default counter should be incremented');
+    t.ok(counter.getValue({'something': 'important'}, 'search works with' +
+            ' inherited labels'));
+
+    counter = collector.counter({
+        name: 'best_test',
+        help: 'test'
+    });
+    counter.increment({
+        'statusCode': 204
+    });
+    t.equals(counter.getValue({'statusCode': 204}), 1, 'child label get value');
+
+    var gauge = collector.gauge({
+        name: 'my_gauge',
+        help: 'just an ordinary gauge'
+    });
+    gauge.set(1000);
+    t.equals(gauge.getValue(), 1000, 'get value from a gauge');
+
+    var err = gauge.getValue({name: 'noexist'});
+    t.ok(err instanceof VError, 'error on nonexistent gauge');
+    t.equal(err.name, common.NOEXISTERROR, 'error name checks out');
+
+    t.end();
+});
+
 
 /*
  * Test that the parent/child relationship is working.
@@ -123,16 +172,18 @@ mod_tape('label tests', function (t) {
 
     // Increment counter with static labels.
     counter.increment();
-    t.equals(counter.metricVec.getDefault().value, 1,
+    t.equals(counter.getValue({mytag: 'isAwesome', global: 'label'}), 1,
         'increment w/ static labels from Collector and Counter');
+
+    t.equals(counter.getValue(), 1, 'default counter with getValue');
+
 
     counter.increment({
         dynamicLabel: 'pepsi'
     });
-    t.equals(counter.labels({
-        dynamicLabel: 'pepsi'
-    }).value, 1, 'increment w/ dynamic label and static labels');
 
+    t.equals(counter.getValue({dynamicLabel: 'pepsi'}), 1,
+        'increment w/ dynamic label and static labels');
 
     counter = collector.counter({
         name: 'counter',
@@ -140,23 +191,21 @@ mod_tape('label tests', function (t) {
     });
 
     counter.increment();
-    t.equals(counter.metricVec.getDefault().value, 1,
-            'increment w/ label from Collector');
+    t.equals(counter.getValue(), 1, 'increment w/ label from Collector');
 
     // The user gave us a label structure, but no labels.
     counter.add(100, {});
-    t.equals(counter.metricVec.getDefault().value, 101,
-            'increment with empty label structure');
+    t.equals(counter.getValue(), 101, 'increment with empty label structure');
 
     // Test for numeric metric values.
     counter.increment({
         method: 'putobject',
         code: 200
     });
-    t.equals(counter.labels({
+    t.equals(counter.getValue({
         method: 'putobject',
         code: 200
-    }).value, 1, 'numeric label values, multiple labels');
+    }), 1, 'numeric label values, multiple labels');
 
     t.end();
 });
@@ -169,15 +218,13 @@ mod_tape('absolute gauge tests', function (t) {
     });
 
     abs_gauge.set(100, {});
-    t.equals(abs_gauge.metricVec.getDefault().value, 100,
-            'basic absolute gauge set value');
+    t.equals(abs_gauge.getValue(), 100, 'basic absolute gauge set value');
 
     abs_gauge.set(0, {});
-    t.equals(abs_gauge.metricVec.getDefault().value, 0,
-            'basic absolute gauge set value to zero');
+    t.equals(abs_gauge.getValue(), 0, 'basic absolute gauge set value to zero');
 
     abs_gauge.set(-1000.1234, {});
-    t.equals(abs_gauge.metricVec.getDefault().value, -1000.1234,
+    t.equals(abs_gauge.getValue(), -1000.1234,
             'basic absolute gauge set value to negative float');
 
     t.throws(function () {
@@ -500,10 +547,10 @@ mod_tape('odd value tests', function (t) {
     });
 
     counter.add(0);
-    t.equals(counter.metricVec.getDefault().value, 0, 'add zero to counter');
+    t.equals(counter.getValue(), 0, 'add zero to counter');
 
     hist.observe(0);
-    t.equals(hist.defaultCounter().metricVec.getDefault().value, 0,
+    t.equals(hist.defaultCounter().getValue(), 0,
         'histogram observes zero value');
 
     t.throws(function () {
@@ -602,7 +649,7 @@ mod_tape('log/linear bucket tests', function (t) {
     histo.observe(6562); // Record a value which will create larger buckets.
     histo.observe(5103); // Record a value below the smallest larger bucket.
 
-    value = histo.defaultCounter().labels({'le': 6561}).value;
+    value = histo.defaultCounter().getValue({'le': 6561});
     t.equals(value, 4, 'overlapping bucket values copied correctly');
 
 

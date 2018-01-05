@@ -36,11 +36,12 @@ value, a timestamp, and associated labels.
 |----------|------|-----------------|
 |labels    |object|A map of label key/value pairs|
 |value     |number|A number that describes the current value of the metric|
-|timestamp |number|Unix time since the epoch, representing the time this metric was last modified|
+|timestamp |number|ISO 8601 timestamp, representing the time this metric was last modified|
 
 | Function | Arguments | Result | Return Value|
 |----------|-----------|--------|-------------|
 |add       |num     |Adds `num` to the `value` field of the metric. No positive/negative check is done on `num`|None|
+|getValue  |None   |Returns the local `value` field. Consumed by higher level functions |`number` type|
 
 The `labels` that belong to each Metric are key/value pairs. There can
 be two Metrics that have the exact same key/value pairs, but they cannot
@@ -137,7 +138,8 @@ metrics are collected. See collector.processTriggers() for more information.
 | Function | Arguments | Result | Return Value|
 |----------|-----------|--------|-------------|
 |Counter |parent, opts|creates a Counter object from traits available in the parent, and options passed in|a new Counter object|
-|labels|object|returns a metric that have *exactly* the label key/value pairs provided. If none exists, one is created|A Metric object|
+|labels|object|returns a metric that has *exactly* the label key/value pairs provided. If none exists, one is created|A Metric object|
+|getWithLabels|object|same as `labels()`, but returns `null` if a metric doesn't exist|A Metric object or null|
 |prometheus|callback   |returns all of the Counter's metrics in prometheus format as a string|None (string and error via callback)|
 
 `Counter()` is called by the Collector object's `counter()` function.
@@ -154,7 +156,8 @@ metrics are collected. See collector.processTriggers() for more information.
 | Function | Arguments | Result | Return Value|
 |----------|-----------|--------|-------------|
 |Gauge |parent, opts|creates a Gauge object from traits available in the parent, and options passed in|a new Gauge object|
-|labels|object|returns a metric that have *exactly* the label key/value pairs provided. If none exists, one is created|A Metric object|
+|labels|object|returns a metric that has *exactly* the label key/value pairs provided. If none exists, one is created|A Metric object|
+|getWithLabels|object|same as `labels()`, but returns `null` if a metric doesn't exist|A Metric object or null|
 |prometheus|callback   |returns all of the Gauge's metrics in prometheus format as a string|None (string and error via callback)|
 
 `Gauge()` is called by the Collector object's `gauge()` function.

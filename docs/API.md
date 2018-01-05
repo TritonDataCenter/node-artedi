@@ -162,6 +162,15 @@ counter.add(100, {
 });
 ```
 
+### counter.getValue(labels)
+Retrieve the value of the underlying metric represented by `labels`. If none
+exists, an error is returned.
+
+Example:
+```javascript
+counter.getValue( { operation: 'click' } );
+```
+
 ## Gauge
 Gauges are similar to counters. Gauges can count up, or count down relative
 to their current value, or be set to an arbitrary value. Gauges start with an
@@ -185,6 +194,15 @@ Example:
 gauge.set(123, {
     tableName: 'manta'
 });
+```
+
+### gauge.getValue(labels)
+Retrieve the value of the underlying metric represented by `labels`. If none
+exists, an error is returned.
+
+Example:
+```javascript
+gauge.getValue( { tableName: 'manta' } );
 ```
 
 ## Histogram
