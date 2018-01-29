@@ -357,14 +357,19 @@ mod_tape('histogram serialization tests', function (t) {
             });
 
             expected = expected +
-                'bot_trolololol{key="value",le="1"} 1\n' +
-                'bot_trolololol{key="value",le="3"} 1\n' +
-                'bot_trolololol{key="value",le="5"} 1\n' +
-                'bot_trolololol{key="value",le="7"} 1\n' +
-                'bot_trolololol{key="value",le="9"} 1\n' +
-                'bot_trolololol{le="+Inf",key="value"} 1\n' +
-                'bot_trolololol_count{key="value"} 1\n' +
-                'bot_trolololol_sum{key="value"} 1\n';
+                'bot_trolololol{key="value",le="0.8999999999999998"} 0\n'
+                + 'bot_trolololol{key="value",le="1.7999999999999996"} 1\n'
+                + 'bot_trolololol{key="value",le="2.6999999999999993"} 1\n'
+                + 'bot_trolololol{key="value",le="3.599999999999999"} 1\n'
+                + 'bot_trolololol{key="value",le="4.499999999999999"} 1\n'
+                + 'bot_trolololol{key="value",le="5.399999999999999"} 1\n'
+                + 'bot_trolololol{key="value",le="6.299999999999998"} 1\n'
+                + 'bot_trolololol{key="value",le="7.1999999999999975"} 1\n'
+                + 'bot_trolololol{key="value",le="8.099999999999998"} 1\n'
+                + 'bot_trolololol{key="value",le="8.999999999999998"} 1\n'
+                + 'bot_trolololol{le="+Inf",key="value"} 1\n'
+                + 'bot_trolololol_count{key="value"} 1\n'
+                + 'bot_trolololol_sum{key="value"} 1\n';
 
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for single label');
@@ -502,27 +507,28 @@ mod_tape('histogram serialization tests', function (t) {
                 help: 'testhelp'
             });
 
-            histogram.observe(1);
+            histogram.observe(10);
             histogram.observe(100);
             // TODO We should have the +Inf label at the end. This works, but
             // it would look nicer.
             expected = '' +
-                '# HELP test_test1 testhelp\n' +
-                '# TYPE test_test1 ' + common.HISTOGRAM + '\n' +
-                'test_test1{le="1"} 1\n' +
-                'test_test1{le="3"} 1\n' +
-                'test_test1{le="5"} 1\n' +
-                'test_test1{le="7"} 1\n' +
-                'test_test1{le="9"} 1\n' +
-                'test_test1{le="+Inf"} 2\n' +
-                'test_test1{le="81"} 1\n' +
-                'test_test1{le="243"} 2\n' +
-                'test_test1{le="405"} 2\n' +
-                'test_test1{le="567"} 2\n' +
-                'test_test1{le="729"} 2\n' +
-                'test_test1_count{} 2\n' +
-                'test_test1_sum{} 101\n';
-            collector.collect(mod_artedi.FMT_PROM, function (err, str) {
+                '# HELP test_test1 testhelp\n'
+                + '# TYPE test_test1 ' + common.HISTOGRAM + '\n'
+                + 'test_test1{le="8.999999999999998"} 0\n'
+                + 'test_test1{le="26.999999999999993"} 1\n'
+                + 'test_test1{le="44.999999999999986"} 1\n'
+                + 'test_test1{le="62.999999999999986"} 1\n'
+                + 'test_test1{le="80.99999999999999"} 1\n'
+                + 'test_test1{le="+Inf"} 2\n'
+                + 'test_test1{le="81"} 1\n'
+                + 'test_test1{le="243"} 2\n'
+                + 'test_test1{le="405"} 2\n'
+                + 'test_test1{le="567"} 2\n'
+                + 'test_test1{le="729"} 2\n'
+                + 'test_test1_count{} 2\n'
+                + 'test_test1_sum{} 110\n';
+
+                collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for copying bucket values');
                 t.equals(str, expected, 'initial values copied from ' +
                     'low-order buckets to high-order buckets');
