@@ -20,7 +20,7 @@ var counter = collector.counter({
     name: 'http_requests_completed',
     help: 'count of muskie http requests completed',
     labels: {
-        zone: ZONENAME
+        zone: 'e5d3'
     }
 });
 
@@ -53,7 +53,7 @@ histogram.observe(998, {
 // This output is defined by Prometheus.
 collector.collect(artedi.FMT_PROM, function (err, metrics) {
     if (err) {
-        throw new VError(err, 'could not collect metrics');
+        throw new Error('could not collect metrics');
     }
     console.log(metrics);
     // Prints:
@@ -64,9 +64,9 @@ collector.collect(artedi.FMT_PROM, function (err, metrics) {
     // # TYPE http_request_latency_ms histogram
     // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="729"} 0
     // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="2187"} 1
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="3645"} 0
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="5103"} 0
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="6561"} 0
+    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="3645"} 1
+    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="5103"} 1
+    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="6561"} 1
     // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="+Inf"} 1
     // http_request_latency_ms_count{zone="e5d3",method="getobject",code="200"} 1
     // http_request_latency_ms_sum{zone="e5d3",method="getobject",code="200"} 998

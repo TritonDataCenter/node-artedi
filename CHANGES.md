@@ -3,6 +3,9 @@
 ## Not yet released
 None
 
+## 1.2.1
+* #12 histograms can't observe values less than one
+
 ## 1.2.0
 * #9 Create an accessor function for collector values
 

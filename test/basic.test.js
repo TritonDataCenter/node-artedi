@@ -357,14 +357,19 @@ mod_tape('histogram serialization tests', function (t) {
             });
 
             expected = expected +
-                'bot_trolololol{key="value",le="1"} 1\n' +
-                'bot_trolololol{key="value",le="3"} 1\n' +
-                'bot_trolololol{key="value",le="5"} 1\n' +
-                'bot_trolololol{key="value",le="7"} 1\n' +
-                'bot_trolololol{key="value",le="9"} 1\n' +
-                'bot_trolololol{le="+Inf",key="value"} 1\n' +
-                'bot_trolololol_count{key="value"} 1\n' +
-                'bot_trolololol_sum{key="value"} 1\n';
+                'bot_trolololol{key="value",le="0.81"} 0\n'
+                + 'bot_trolololol{key="value",le="1.62"} 1\n'
+                + 'bot_trolololol{key="value",le="2.43"} 1\n'
+                + 'bot_trolololol{key="value",le="3.24"} 1\n'
+                + 'bot_trolololol{key="value",le="4.05"} 1\n'
+                + 'bot_trolololol{key="value",le="4.86"} 1\n'
+                + 'bot_trolololol{key="value",le="5.67"} 1\n'
+                + 'bot_trolololol{key="value",le="6.48"} 1\n'
+                + 'bot_trolololol{key="value",le="7.29"} 1\n'
+                + 'bot_trolololol{key="value",le="8.1"} 1\n'
+                + 'bot_trolololol{le="+Inf",key="value"} 1\n'
+                + 'bot_trolololol_count{key="value"} 1\n'
+                + 'bot_trolololol_sum{key="value"} 1\n';
 
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for single label');
@@ -390,11 +395,11 @@ mod_tape('histogram serialization tests', function (t) {
             expected = '' +
                 '# HELP http_request_latency latency of requests\n' +
                 '# TYPE http_request_latency ' + common.HISTOGRAM + '\n' +
-                'http_request_latency{service="muskie",le="81"} 0\n' +
-                'http_request_latency{service="muskie",le="243"} 1\n' +
-                'http_request_latency{service="muskie",le="405"} 1\n' +
-                'http_request_latency{service="muskie",le="567"} 1\n' +
-                'http_request_latency{service="muskie",le="729"} 1\n' +
+                'http_request_latency{service="muskie",le="76"} 0\n' +
+                'http_request_latency{service="muskie",le="228"} 1\n' +
+                'http_request_latency{service="muskie",le="380"} 1\n' +
+                'http_request_latency{service="muskie",le="532"} 1\n' +
+                'http_request_latency{service="muskie",le="684"} 1\n' +
                 'http_request_latency{le="+Inf",service="muskie"} 1\n' +
                 'http_request_latency_count{service="muskie"} 1\n' +
                 'http_request_latency_sum{service="muskie"} 99\n';
@@ -430,11 +435,11 @@ mod_tape('histogram serialization tests', function (t) {
             expected = '' +
             '# HELP web_conn_alive_time connection alive time\n' +
             '# TYPE web_conn_alive_time ' + common.HISTOGRAM + '\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="81"} 0\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="243"} 1\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="405"} 1\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="567"} 1\n' +
-            'web_conn_alive_time{service="muskie",component="qball",le="729"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="76"} 0\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="228"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="380"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="532"} 1\n' +
+            'web_conn_alive_time{service="muskie",component="qball",le="684"} 1\n' +
             'web_conn_alive_time{le="+Inf",service="muskie",component="qball"} 1\n' +
             'web_conn_alive_time_count{service="muskie",component="qball"} 1\n' +
             'web_conn_alive_time_sum{service="muskie",component="qball"} 101\n';
@@ -476,11 +481,11 @@ mod_tape('histogram serialization tests', function (t) {
             var expected4 = '' +
             '# HELP webapi_conn_alive_time connection alive time\n' +
             '# TYPE webapi_conn_alive_time ' + common.HISTOGRAM + '\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="81"} 0\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="243"} 1\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="405"} 1\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="567"} 1\n' +
-            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="729"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="76"} 0\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="228"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="380"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="532"} 1\n' +
+            'webapi_conn_alive_time{err="ECONNRESET",service="muskie",component="cueball",le="684"} 1\n' +
             'webapi_conn_alive_time{le="+Inf",err="ECONNRESET",service="muskie",component="cueball"} 1\n' +
             'webapi_conn_alive_time_count{err="ECONNRESET",service="muskie",component="cueball"} 1\n' +
             'webapi_conn_alive_time_sum{err="ECONNRESET",service="muskie",component="cueball"} 101\n';
@@ -502,27 +507,27 @@ mod_tape('histogram serialization tests', function (t) {
                 help: 'testhelp'
             });
 
-            histogram.observe(1);
+            histogram.observe(10);
             histogram.observe(100);
             // TODO We should have the +Inf label at the end. This works, but
             // it would look nicer.
             expected = '' +
-                '# HELP test_test1 testhelp\n' +
-                '# TYPE test_test1 ' + common.HISTOGRAM + '\n' +
-                'test_test1{le="1"} 1\n' +
-                'test_test1{le="3"} 1\n' +
-                'test_test1{le="5"} 1\n' +
-                'test_test1{le="7"} 1\n' +
-                'test_test1{le="9"} 1\n' +
-                'test_test1{le="+Inf"} 2\n' +
-                'test_test1{le="81"} 1\n' +
-                'test_test1{le="243"} 2\n' +
-                'test_test1{le="405"} 2\n' +
-                'test_test1{le="567"} 2\n' +
-                'test_test1{le="729"} 2\n' +
-                'test_test1_count{} 2\n' +
-                'test_test1_sum{} 101\n';
-            collector.collect(mod_artedi.FMT_PROM, function (err, str) {
+                '# HELP test_test1 testhelp\n'
+                + '# TYPE test_test1 ' + common.HISTOGRAM + '\n'
+                + 'test_test1{le="8.1"} 0\n'
+                + 'test_test1{le="25"} 1\n'
+                + 'test_test1{le="42"} 1\n'
+                + 'test_test1{le="59"} 1\n'
+                + 'test_test1{le="76"} 1\n'
+                + 'test_test1{le="+Inf"} 2\n'
+                + 'test_test1{le="228"} 2\n'
+                + 'test_test1{le="380"} 2\n'
+                + 'test_test1{le="532"} 2\n'
+                + 'test_test1{le="684"} 2\n'
+                + 'test_test1_count{} 2\n'
+                + 'test_test1_sum{} 110\n';
+
+                collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for copying bucket values');
                 t.equals(str, expected, 'initial values copied from ' +
                     'low-order buckets to high-order buckets');
@@ -548,6 +553,10 @@ mod_tape('odd value tests', function (t) {
 
     counter.add(0);
     t.equals(counter.getValue(), 0, 'add zero to counter');
+
+    hist.observe(0.0001);
+    t.equals(hist.defaultCounter().getValue({'le': 0.0001}), 1,
+        'histogram tracks values less than one');
 
     hist.observe(0);
     t.equals(hist.defaultCounter().getValue(), 0,
@@ -580,6 +589,7 @@ mod_tape('odd value tests', function (t) {
             help: { help: 'nested help!' }
         });
     }, 'invalid collector help (object)');
+
 
     t.end();
 });
@@ -646,10 +656,10 @@ mod_tape('log/linear bucket tests', function (t) {
     histo.observe(10); // Record three small values.
     histo.observe(10);
     histo.observe(10);
-    histo.observe(6562); // Record a value which will create larger buckets.
-    histo.observe(5103); // Record a value below the smallest larger bucket.
+    histo.observe(6157); // Record a value which will create larger buckets.
+    histo.observe(4788); // Record a value below the smallest larger bucket.
 
-    value = histo.defaultCounter().getValue({'le': 6561});
+    value = histo.defaultCounter().getValue({'le': 6156});
     t.equals(value, 4, 'overlapping bucket values copied correctly');
 
 
