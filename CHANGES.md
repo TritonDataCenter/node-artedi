@@ -3,6 +3,9 @@
 ## Not yet released
 None
 
+## 1.3.0
+* #13 add DTrace probes
+
 ## 1.2.1
 * #12 histograms can't observe values less than one
 

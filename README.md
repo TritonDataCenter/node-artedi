@@ -81,6 +81,58 @@ For more advanced usage and full API documentation, see
 npm install artedi
 ```
 
+## DTrace probes
+artedi includes some useful DTrace probes. The full listing of probes and their
+arguments can be found in the [lib/provider.js](./lib/provider.js) file.
+
+In this first example artedi is observing the latency of queries to three
+Postgres instances (using joyent/pgstatsmon). The latency observations include
+the name of the backend Postgres instance.
+
+We can create a graph of each Postgres backend's latency using built-in DTrace
+aggregation:
+```
+$ dtrace -qn 'artedi*:::histogram-observe {@lat[json(copyinstr(arg2), "name")] = quantize(arg1);} tick-10s {printa(@lat);}'
+
+  3.postgres.walleye.kkantor.com-87eb177c
+           value  ------------- Distribution ------------- count
+               8 |                                         0
+              16 |@@@@@@@@@@                               5
+              32 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@            15
+              64 |@@                                       1
+             128 |                                         0
+
+  2.postgres.walleye.kkantor.com-335c1a83
+           value  ------------- Distribution ------------- count
+               8 |                                         0
+              16 |@@@@@@@@                                 4
+              32 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@           16
+              64 |@@                                       1
+             128 |                                         0
+
+  1.postgres.walleye.kkantor.com-f5c49b33
+           value  ------------- Distribution ------------- count
+               8 |                                         0
+              16 |@@@@@@@@                                 4
+              32 |@@@@@@@@@@@@@@@@@@@@@@@@@@@              14
+              64 |@@@@@@                                   3
+             128 |                                         0
+^C
+```
+
+We could also retrieve the number of HTTP operations performed by HTTP handler
+name and return code (from manta-muskie):
+```
+$ dtrace -qn 'artedi*:::counter-add /copyinstr(arg0) == "http_requests_completed" /{ jsonstr = copyinstr(arg2); @counts[json(jsonstr, "operation"), json(jsonstr, "statusCode")] = count(); }'
+^C
+
+  getstorage    200     135
+  putobject     204     137
+```
+
+These probes could conceivably be used to create more complicated reporting
+tools as well.
+
 ## License
 MPL-v2
 
