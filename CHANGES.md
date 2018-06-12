@@ -3,6 +3,10 @@
 ## Not yet released
 None
 
+## 1.4.0
+* #14 Allow for metrics in a MetricVector to be optionally expired or reset to a
+    default value
+
 ## 1.3.0
 * #13 add DTrace probes
 

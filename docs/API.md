@@ -50,9 +50,16 @@ var counter = collector.counter({
 ### collector.gauge(opts) : Gauge
 Creates a new Gauge object with the given options (incl. labels). This call is
 idempotent. `opts` must include 'help' and 'name' fields, and may optionally
-include a 'labels' object.
+include a 'labels' object. Additionally, gauges have an expiry feature such that
+the gauge is reset to a default value if the vaue is not otherwise updated for a
+certain time period. The expiry behavior is controlled with three fields: an
+'expires' boolean, an 'expiryPeriod' numeric value representing milliseconds,
+and a 'defaultValue' numeric value representing the default value of the
+gauge. IF not explicitly set to `true`, the value of `expires` defaults to
+`false`. The `expiryPeriod` default is 300000 milliseconds and the default value
+for `defaultValue` is `0`.
 
-Example:
+Examples:
 ```javascript
 var gauge = collector.gauge({
     name: 'tcp_connections_available',
@@ -60,6 +67,19 @@ var gauge = collector.gauge({
     labels: {
         backend: 'myserver'
     }
+});
+```
+
+```javascript
+var gauge = collector.gauge({
+    name: 'postgres_vacuum_phase',
+    help: 'current phase of postgres table vacuum',
+    labels: {
+        database: 'mydatabase'
+    },
+    expires: true,
+    expiryPeriod: 120000,
+    defaultValue: 0
 });
 ```
 ### collector.histogram(opts) : Histogram
