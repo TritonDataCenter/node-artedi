@@ -665,3 +665,64 @@ mod_tape('log/linear bucket tests', function (t) {
 
     t.end();
 });
+
+mod_tape('gauge expiry tests', function (t) {
+    var collector = mod_artedi.createCollector();
+    var expiryGauge1 = collector.gauge({
+        name: 'expiryGauge1',
+        help: 'expiry gauge help',
+        expires: true,
+        expiryPeriod: 1000
+    });
+
+    var expiryGauge2 = collector.gauge({
+        name: 'expiryGauge2',
+        help: 'expiry gauge help',
+        expires: true,
+        expiryPeriod: 500,
+        defaultValue: 25
+    });
+
+    var nonExpiryGauge = collector.gauge({
+        name: 'nonExpiryGauge',
+        help: 'expiry gauge help',
+        expires: false,
+        expiryPeriod: 500,
+        defaultValue: 1
+    });
+
+    expiryGauge1.set(100, {});
+    t.equals(expiryGauge1.getValue(), 100, 'initial gauge set value');
+
+    expiryGauge2.set(100, {});
+    t.equals(expiryGauge2.getValue(), 100, 'initial gauge set value');
+
+    nonExpiryGauge.set(100, {});
+    t.equals(nonExpiryGauge.getValue(), 100, 'initial gauge set value');
+
+    var barrier = mod_vasync.barrier();
+    barrier.on('drain', function () { t.end(); });
+
+    barrier.start('expiryGauge1');
+    barrier.start('expiryGauge2');
+    barrier.start('nonExpiryGauge');
+
+    // Wait 3x the expiry period and check the value has been reset to the
+    // default
+    setTimeout(function () {
+        t.equals(expiryGauge1.getValue(), 0, 'initial expiryGauge1 set value');
+        barrier.done('expiryGauge1');
+    }, 1500);
+    setTimeout(function () {
+        t.equals(expiryGauge2.getValue(), 25, 'initial expiryGauge2 set value');
+        barrier.done('expiryGauge2');
+    }, 1000);
+
+    // Wait 3x the expiry period and ensure the value has not been reset to the
+    // default
+    setTimeout(function () {
+        t.equals(nonExpiryGauge.getValue(), 100,
+            'nonExpiryGauge value not reset');
+        barrier.done('nonExpiryGauge');
+    }, 1000);
+});

@@ -30,18 +30,25 @@ The Metric class represents the value behind an individual metric. For example,
 a Metric could represent the count of HTTP POST requests made that resulted in a
 204 status code. This class has no knowledge of higher-level concepts like
 counters, gauges, or histograms. It is simply a class that maintains a numeric
-value, a timestamp, and associated labels.
+value, a timestamp, associated labels, and some information related to the
+optional expiry.
 
 | Variable | Type | Value |
 |----------|------|-----------------|
 |labels    |object|A map of label key/value pairs|
 |value     |number|A number that describes the current value of the metric|
 |timestamp |number|ISO 8601 timestamp, representing the time this metric was last modified|
+|expires   |boolean|Indicates if expiry is enabled for the metric|
+|expiryPeriod |number|Expiry time for the metric in milliseconds|
+|expiryTimer |object|Object representing the expiry timer|
+|defaultValue |number|A number that describes the default value of the metric|
 
 | Function | Arguments | Result | Return Value|
 |----------|-----------|--------|-------------|
 |add       |num     |Adds `num` to the `value` field of the metric. No positive/negative check is done on `num`|None|
+|set       |num     |Sets the `value` field of the metric to `num`. No positive/negative check is done on `num`|None|
 |getValue  |None   |Returns the local `value` field. Consumed by higher level functions |`number` type|
+|resetValue  |None   |Resets the `value` field of the metric to `defaultValue` |None|
 
 The `labels` that belong to each Metric are key/value pairs. There can
 be two Metrics that have the exact same key/value pairs, but they cannot

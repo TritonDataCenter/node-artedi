@@ -5,6 +5,7 @@
     * [Log/Linear Buckets](#loglinear-buckets)
     * [Dynamic Labelling](#dynamic-labelling)
     * [Triggered Metrics](#triggered-metrics)
+    * [Metric Expiry](#metric-expiry)
     * [Children are leaf collectors](#children-are-leaf-collectors)
 * [Problems](#problems)
     * [Metric Cardinality](#metric-cardinality)
@@ -276,6 +277,23 @@ could be invoked. This is similar to existing solutions, like
 
 Basic triggered metrics (type 1 from above) are implemented in node-artedi
 version 1.1.0. Type 2 triggered metrics are not yet implemented.
+
+### Metric Expiry
+Metrics have an optional expiry feature that allows them to be reset to a
+default value after a given time period has passed in which the value of the
+metric is not otherwise updated. The expiry feature is currently only exposed
+for gauge types, but it is a feature of the more general metric and could be
+exposed for other types in the future. This feature was introduced in version
+1.4.0.
+
+An example use case for metric expiry is when a gauge is used to track the
+progress of a finite event or sequence of steps, but the event has no discrete
+final state that can be observed to indicate completion. Without intervention a
+gauge will continue providing a reading of the last known value indefinitely
+once the metric data is no longer extant. The expiry option provides a way to
+infer the completion of the event or sequence from the fact that the metric
+value and its associated timestamp are not updated within the observation period
+and then take action to reset the value to a default.
 
 ### Children are leaf collectors
 Children cannot be created from children. That is, a user can't call
