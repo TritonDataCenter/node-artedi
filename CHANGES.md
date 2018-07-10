@@ -3,6 +3,9 @@
 ## Not yet released
 None
 
+## 1.4.1
+* #15 improve the performance of hashObj()
+
 ## 1.4.0
 * #14 Allow for metrics in a MetricVector to be optionally expired or reset to a
     default value
