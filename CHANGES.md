@@ -3,7 +3,7 @@
 ## Not yet released
 None
 
-## 2.0.0
+## 2.0.0 [backward incompatible if you use histograms]
 * Histogram buckets completely changed to be compatible with Prometheus. You can
   now either pass in an array of bucket values. If you do not pass in bucket
   values, you will get the default buckets:
