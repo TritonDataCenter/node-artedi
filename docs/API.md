@@ -83,9 +83,9 @@ var gauge = collector.gauge({
 });
 ```
 ### collector.histogram(opts) : Histogram
-Creates a new Histogram object with the given options (incl. labels). This call
-is idempotent. `opts` must include 'help' and 'name' fields, and may optionally
-include a 'labels' object.
+Creates a new Histogram object with the given options (incl. labels and
+buckets). This call is idempotent. `opts` must include 'help' and 'name' fields,
+and may optionally include a 'labels' object and/or a buckets array.
 
 Example:
 ```javascript
@@ -94,9 +94,17 @@ var histogram = collector.histogram({
     help: 'latency of http requests',
     labels: {
         component: 'muskie'
-    }
+    },
+    buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]
 });
 ```
+
+Note: If `buckets` are not specified, the default buckets will be:
+
+```
+[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+```
+
 
 ### collector.addTriggerFunction(func(Collector, callback))
 Adds `func` to a list of triggers to call immediately before metrics are
@@ -232,11 +240,6 @@ count values that fall between a number of buckets.
 
 ### histogram.observe(value, labels)
 Increment buckets with a value >= `value`.
-
-Note that it isn't necessary to specify which
-buckets to use. Log/linear buckets are automatically generated. More details
-about log/linear buckets can be found at the
-[DTrace blog](http://dtrace.org/blogs/bmc/2011/02/08/llquantize/).
 
 Example:
 ```javascript

@@ -189,5 +189,3 @@ metrics are collected. See collector.processTriggers() for more information.
 |prometheus|callback|iterates through the Counters, calling `prometheus()` on their `MetricVector` object. The results are stitched together and added to the result of calling `prometheus()` on the Gauge's MetricVector|None (string and error via callback)|
 
 `Histogram()` is called by the parent object's `histogram()` function.
-Buckets will be created using the log/linear method, similar to how it's done in
-[DTrace](http://dtrace.org/blogs/bmc/2011/02/08/llquantize/).

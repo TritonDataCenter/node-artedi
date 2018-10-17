@@ -3,6 +3,13 @@
 ## Not yet released
 None
 
+## 2.0.0
+* Histogram buckets completely changed to be compatible with Prometheus. You can
+  now either pass in an array of bucket values. If you do not pass in bucket
+  values, you will get the default buckets:
+
+  [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+
 ## 1.4.1
 * #15 improve the performance of hashObj()
 
