@@ -649,6 +649,81 @@ mod_tape('default bucket tests', function (t) {
     t.end();
 });
 
+/*
+ * Test that non-monotonic buckets fail.
+ */
+mod_tape('non-monotonic buckets', function (t) {
+    var collector = mod_artedi.createCollector();
+    var histo;
+
+    t.throws(function _badBuckets() {
+        histo = collector.histogram({
+            name: 'test_histogram',
+            help: 'test help',
+            buckets: [ 1, 5, 10, 100, 50, 1000 ]
+        });
+    }, /buckets should be monotonic/,
+        'non-monotonic buckets should not be allowed');
+
+    t.end();
+});
+
+/*
+ * Test that increment works properly.
+ */
+mod_tape('histogram buckets incremented', function (t) {
+    var collector = mod_artedi.createCollector();
+    var histo = collector.histogram({
+        name: 'test_histogram',
+        help: 'test help',
+        buckets: [ 1, 2, 3, 4, 5 ]
+    });
+
+    histo.observe(2);
+
+    // should have updated 2, 3, 4, 5, +Inf
+    collector.collect(mod_artedi.FMT_PROM, function (err, str) {
+        t.notOk(err, 'no error for copying bucket values');
+        t.equals(str, [
+            '# HELP test_histogram test help',
+            '# TYPE test_histogram histogram',
+            'test_histogram{le="1"} 0',
+            'test_histogram{le="2"} 1',
+            'test_histogram{le="3"} 1',
+            'test_histogram{le="4"} 1',
+            'test_histogram{le="5"} 1',
+            'test_histogram{le="+Inf"} 1',
+            'test_histogram_count{} 1',
+            'test_histogram_sum{} 2',
+            ''
+        ].join('\n'), 'observe(2) incremented all subsequent buckets');
+
+        histo.observe(0.5);
+
+        // should have updated 1, 2, 3, 4, 5, +Inf
+        collector.collect(mod_artedi.FMT_PROM, function (err, str) {
+            t.notOk(err, 'no error for copying bucket values');
+            t.equals(str, [
+                '# HELP test_histogram test help',
+                '# TYPE test_histogram histogram',
+                'test_histogram{le="1"} 1',
+                'test_histogram{le="2"} 2',
+                'test_histogram{le="3"} 2',
+                'test_histogram{le="4"} 2',
+                'test_histogram{le="5"} 2',
+                'test_histogram{le="+Inf"} 2',
+                'test_histogram_count{} 2',
+                'test_histogram_sum{} 2.5',
+                ''
+            ].join('\n'), 'observe(0.5) incremented all subsequent buckets');
+
+            t.end();
+        });
+    });
+
+});
+
+
 mod_tape('gauge expiry tests', function (t) {
     var collector = mod_artedi.createCollector();
     var expiryGauge1 = collector.gauge({

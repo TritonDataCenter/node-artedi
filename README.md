@@ -39,15 +39,13 @@ collector.collect(artedi.FMT_PROM, function (err, metrics) {
 });
 
 var histogram = collector.histogram({
-    name: 'http_request_latency_ms',
+    name: 'http_request_latency_seconds',
     help: 'latency of muskie http requests',
-    // Use buckets that match what we would get if we used the recommended
-    // http_request_latency_seconds.
-    buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000]
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
 });
 
 // Observe a latency of 998ms for a 'putobjectdir' request.
-histogram.observe(998, {
+histogram.observe(0.998, {
     method: 'putobjectdir'
 });
 
@@ -63,22 +61,22 @@ collector.collect(artedi.FMT_PROM, function (err, metrics) {
     // # HELP http_requests_completed count of muskie http requests completed
     // # TYPE http_requests_completed counter
     // http_requests_completed{method="getobject",code="200",zone="e5d3"} 1
-    // # HELP http_request_latency_ms latency of muskie http requests
-    // # TYPE http_request_latency_ms histogram
-    // http_request_latency_ms{method="putobjectdir",le="5"} 0
-    // http_request_latency_ms{method="putobjectdir",le="10"} 0
-    // http_request_latency_ms{method="putobjectdir",le="25"} 0
-    // http_request_latency_ms{method="putobjectdir",le="50"} 0
-    // http_request_latency_ms{method="putobjectdir",le="100"} 0
-    // http_request_latency_ms{method="putobjectdir",le="250"} 0
-    // http_request_latency_ms{method="putobjectdir",le="500"} 0
-    // http_request_latency_ms{method="putobjectdir",le="1000"} 1
-    // http_request_latency_ms{method="putobjectdir",le="2500"} 1
-    // http_request_latency_ms{method="putobjectdir",le="5000"} 1
-    // http_request_latency_ms{method="putobjectdir",le="10000"} 1
-    // http_request_latency_ms{le="+Inf",method="putobjectdir"} 1
-    // http_request_latency_ms_count{method="putobjectdir"} 1
-    // http_request_latency_ms_sum{method="putobjectdir"} 998
+    // # HELP http_request_latency_seconds latency of muskie http requests
+    // # TYPE http_request_latency_seconds histogram
+    // http_request_latency_seconds{method="putobjectdir",le="0.005"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.01"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.025"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.05"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.01"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.25"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.5"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="1"} 1
+    // http_request_latency_seconds{method="putobjectdir",le="2.5"} 1
+    // http_request_latency_seconds{method="putobjectdir",le="5"} 1
+    // http_request_latency_seconds{method="putobjectdir",le="10"} 1
+    // http_request_latency_seconds{le="+Inf",method="putobjectdir"} 1
+    // http_request_latency_seconds_count{method="putobjectdir"} 1
+    // http_request_latency_seconds_sum{method="putobjectdir"} 998
 });
 ```
 
