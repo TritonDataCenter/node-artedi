@@ -76,7 +76,7 @@ collector.collect(artedi.FMT_PROM, function (err, metrics) {
     // http_request_latency_seconds{method="putobjectdir",le="10"} 1
     // http_request_latency_seconds{le="+Inf",method="putobjectdir"} 1
     // http_request_latency_seconds_count{method="putobjectdir"} 1
-    // http_request_latency_seconds_sum{method="putobjectdir"} 998
+    // http_request_latency_seconds_sum{method="putobjectdir"} 0.998
 });
 ```
 
