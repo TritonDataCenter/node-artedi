@@ -277,7 +277,7 @@ artedi.exponentialBuckets(1, 2, 5);
 // returns [ 1, 2, 4, 8, 16 ]
 ```
 
-#### logLinearBuckets(base, lowPower, highPower, bucketsPerMagnitude)
+#### artedi.logLinearBuckets(base, lowPower, highPower, bucketsPerMagnitude)
 Generate a set of log-linear buckets. This will create `bucketsPerMagnitude`
 buckets for the magnitude that contains base^lowPower, and each magnitude
 up to and including the magnitude that starts with highPower.
