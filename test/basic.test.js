@@ -640,7 +640,6 @@ mod_tape('default bucket tests', function (t) {
         name: 'test_histogram',
         help: 'test help'
     });
-    var value;
 
     t.deepEquals(histo.buckets,
         [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
@@ -654,10 +653,9 @@ mod_tape('default bucket tests', function (t) {
  */
 mod_tape('non-monotonic buckets', function (t) {
     var collector = mod_artedi.createCollector();
-    var histo;
 
     t.throws(function _badBuckets() {
-        histo = collector.histogram({
+        collector.histogram({
             name: 'test_histogram',
             help: 'test help',
             buckets: [ 1, 5, 10, 100, 50, 1000 ]
@@ -682,9 +680,9 @@ mod_tape('histogram buckets incremented', function (t) {
     histo.observe(2);
 
     // should have updated 2, 3, 4, 5, +Inf
-    collector.collect(mod_artedi.FMT_PROM, function (err, str) {
-        t.notOk(err, 'no error for copying bucket values');
-        t.equals(str, [
+    collector.collect(mod_artedi.FMT_PROM, function (err2, str2) {
+        t.notOk(err2, 'no error for copying bucket values');
+        t.equals(str2, [
             '# HELP test_histogram test help',
             '# TYPE test_histogram histogram',
             'test_histogram{le="1"} 0',

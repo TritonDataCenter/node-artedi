@@ -46,6 +46,10 @@ mod_tape('exponentialBuckets', function (t) {
 
 mod_tape('logLinearBuckets', function (t) {
 
+    // Silence line length linting errors.
+    /* BEGIN JSSTYLED */
+    /* eslint-disable */
+
     // These first tests were inspired by:
     //
     // https://github.com/illumos/illumos-gate/blob/7256a34efe9df75b638b9e812912ef7c5c68e208/usr/src/cmd/dtrace/test/tst/common/llquantize/tst.bases.d
@@ -159,4 +163,7 @@ mod_tape('logLinearBuckets', function (t) {
         ]);
 
     t.end();
+
+    /* eslint-enable */
+    /* END JSSTYLED */
 });
