@@ -163,6 +163,13 @@ Example:
 var my_counter = collector.getCollector('http_requests_completed');
 ```
 
+### collector.FIXED_BUCKETS
+
+This is a boolean which is always `true` for node-artedi v2 and will be
+`undefined` for previous versions. This allows libraries that are passed a
+collector object to support both node-artedi v1 dynamic buckets and node-artedi
+v2 fixed buckets (see node-artedi#17 for more details).
+
 ## Counter
 Counters are the most simple of the collector types. They simply count
 up starting from zero. You can either increment a counter, or add
