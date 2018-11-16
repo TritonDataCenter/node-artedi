@@ -83,20 +83,28 @@ var gauge = collector.gauge({
 });
 ```
 ### collector.histogram(opts) : Histogram
-Creates a new Histogram object with the given options (incl. labels). This call
-is idempotent. `opts` must include 'help' and 'name' fields, and may optionally
-include a 'labels' object.
+Creates a new Histogram object with the given options (incl. labels and
+buckets). This call is idempotent. `opts` must include 'help' and 'name' fields,
+and may optionally include a 'labels' object and/or a buckets array.
 
 Example:
 ```javascript
 var histogram = collector.histogram({
-    name: 'http_request_latency_ms',
+    name: 'http_request_latency_seconds',
     help: 'latency of http requests',
     labels: {
         component: 'muskie'
-    }
+    },
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
 });
 ```
+
+Note: If `buckets` are not specified, the default buckets will be:
+
+```
+[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+```
+
 
 ### collector.addTriggerFunction(func(Collector, callback))
 Adds `func` to a list of triggers to call immediately before metrics are
@@ -155,6 +163,13 @@ Example:
 var my_counter = collector.getCollector('http_requests_completed');
 ```
 
+### collector.FIXED_BUCKETS
+
+This is a boolean which is always `true` for node-artedi v2 and will be
+`undefined` for previous versions. This allows libraries that are passed a
+collector object to support both node-artedi v1 dynamic buckets and node-artedi
+v2 fixed buckets (see node-artedi#17 for more details).
+
 ## Counter
 Counters are the most simple of the collector types. They simply count
 up starting from zero. You can either increment a counter, or add
@@ -190,6 +205,7 @@ Example:
 ```javascript
 counter.getValue( { operation: 'click' } );
 ```
+
 
 ## Gauge
 Gauges are similar to counters. Gauges can count up, or count down relative
@@ -233,11 +249,6 @@ count values that fall between a number of buckets.
 ### histogram.observe(value, labels)
 Increment buckets with a value >= `value`.
 
-Note that it isn't necessary to specify which
-buckets to use. Log/linear buckets are automatically generated. More details
-about log/linear buckets can be found at the
-[DTrace blog](http://dtrace.org/blogs/bmc/2011/02/08/llquantize/).
-
 Example:
 ```javascript
 histogram.observe(1111, {
@@ -245,3 +256,47 @@ histogram.observe(1111, {
     code: 204
 });
 ```
+
+### Bucket Generators
+Artedi includes several generator functions that help create `buckets` arrays
+for use with histograms.
+
+#### artedi.linearBuckets(min, width, count)
+Generate `count` buckets starting with `min` with each bucket being `width`
+larger than the previous.
+
+Example:
+```javascript
+artedi.linearBuckets(0.5, 0.5, 10);
+// returns [ 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5 ]
+```
+
+Note: The `min` parameter must be > 0. It will likely be common to use the same
+value for `width` and `min` as in the example above.
+
+#### artedi.exponentialBuckets(min, factor, count)
+Generate `count` buckets starting with `min` with each bucket being `factor`
+times larger than the previous.
+
+Example:
+```javascript
+artedi.exponentialBuckets(1, 2, 5);
+// returns [ 1, 2, 4, 8, 16 ]
+```
+
+#### artedi.logLinearBuckets(base, lowPower, highPower, bucketsPerMagnitude)
+Generate a set of log-linear buckets. This will create `bucketsPerMagnitude`
+buckets for the magnitude that contains `base^lowPower`, and each magnitude
+up to and including the magnitude that starts with `highPower`.
+
+Example:
+
+```javascript
+artedi.logLinearBuckets(10, -2, 1, 5);
+// returns [ 0.02, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1, 2, 4, 6, 8, 10, 20, 40, 60, 80, 100 ]
+```
+
+Note in the above example, the `lowPower` was -2 so we started with 10^-2 = 0.01
+and used that magnitude (10^-2 to 10^-1) as the first set of 5 buckets. Then we
+created buckets for the magnitudes 10^-1 to 10^0, 10^0 to 10^1 and finally 10^1
+(our `highPower` parameter) to 10^2.

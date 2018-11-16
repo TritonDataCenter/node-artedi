@@ -39,12 +39,13 @@ collector.collect(artedi.FMT_PROM, function (err, metrics) {
 });
 
 var histogram = collector.histogram({
-    name: 'http_request_latency_ms',
-    help: 'latency of muskie http requests'
+    name: 'http_request_latency_seconds',
+    help: 'latency of muskie http requests',
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
 });
 
 // Observe a latency of 998ms for a 'putobjectdir' request.
-histogram.observe(998, {
+histogram.observe(0.998, {
     method: 'putobjectdir'
 });
 
@@ -59,17 +60,23 @@ collector.collect(artedi.FMT_PROM, function (err, metrics) {
     // Prints:
     // # HELP http_requests_completed count of muskie http requests completed
     // # TYPE http_requests_completed counter
-    // http_requests_completed{zone="e5d3",method="getobject",code="200"} 1
-    // # HELP http_request_latency_ms latency of muskie http requests
-    // # TYPE http_request_latency_ms histogram
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="729"} 0
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="2187"} 1
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="3645"} 1
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="5103"} 1
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="6561"} 1
-    // http_request_latency_ms{zone="e5d3",method="getobject",code="200",le="+Inf"} 1
-    // http_request_latency_ms_count{zone="e5d3",method="getobject",code="200"} 1
-    // http_request_latency_ms_sum{zone="e5d3",method="getobject",code="200"} 998
+    // http_requests_completed{method="getobject",code="200",zone="e5d3"} 1
+    // # HELP http_request_latency_seconds latency of muskie http requests
+    // # TYPE http_request_latency_seconds histogram
+    // http_request_latency_seconds{method="putobjectdir",le="0.005"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.01"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.025"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.05"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.01"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.25"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="0.5"} 0
+    // http_request_latency_seconds{method="putobjectdir",le="1"} 1
+    // http_request_latency_seconds{method="putobjectdir",le="2.5"} 1
+    // http_request_latency_seconds{method="putobjectdir",le="5"} 1
+    // http_request_latency_seconds{method="putobjectdir",le="10"} 1
+    // http_request_latency_seconds{le="+Inf",method="putobjectdir"} 1
+    // http_request_latency_seconds_count{method="putobjectdir"} 1
+    // http_request_latency_seconds_sum{method="putobjectdir"} 0.998
 });
 ```
 

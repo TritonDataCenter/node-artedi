@@ -337,7 +337,8 @@ mod_tape('histogram serialization tests', function (t) {
 
     var histogram = collector.histogram({
         name: 'bot_trolololol',
-        help: 'there is no help'
+        help: 'there is no help',
+        buckets: [0.81, 1.62, 2.43, 3.24, 4.05, 4.86, 5.67, 6.48, 7.29, 8.1]
     });
     var expected = '# HELP bot_trolololol there is no help\n';
     expected += '# TYPE bot_trolololol ' + common.HISTOGRAM + '\n';
@@ -388,7 +389,8 @@ mod_tape('histogram serialization tests', function (t) {
 
             histogram = collector.histogram({
                 name: 'http_request_latency',
-                help: 'latency of requests'
+                help: 'latency of requests',
+                buckets: [76, 228, 380, 532, 684]
             });
 
             histogram.observe(99);
@@ -426,7 +428,8 @@ mod_tape('histogram serialization tests', function (t) {
                 help: 'connection alive time',
                 labels: {
                     component: 'qball'
-                }
+                },
+                buckets: [76, 228, 380, 532, 684]
             });
 
             histogram.observe(101);
@@ -468,7 +471,8 @@ mod_tape('histogram serialization tests', function (t) {
                 help: 'connection alive time',
                 labels: {
                     component: 'cueball'
-                }
+                },
+                buckets: [76, 228, 380, 532, 684]
             });
 
             histogram.observe(101, {
@@ -504,13 +508,13 @@ mod_tape('histogram serialization tests', function (t) {
             collector = mod_artedi.createCollector();
             histogram = collector.histogram({
                 name: 'test_test1',
-                help: 'testhelp'
+                help: 'testhelp',
+                buckets: [8.1, 25, 42, 59, 76, 228, 380, 532, 684]
             });
 
             histogram.observe(10);
             histogram.observe(100);
-            // TODO We should have the +Inf label at the end. This works, but
-            // it would look nicer.
+
             expected = '' +
                 '# HELP test_test1 testhelp\n'
                 + '# TYPE test_test1 ' + common.HISTOGRAM + '\n'
@@ -519,11 +523,11 @@ mod_tape('histogram serialization tests', function (t) {
                 + 'test_test1{le="42"} 1\n'
                 + 'test_test1{le="59"} 1\n'
                 + 'test_test1{le="76"} 1\n'
-                + 'test_test1{le="+Inf"} 2\n'
                 + 'test_test1{le="228"} 2\n'
                 + 'test_test1{le="380"} 2\n'
                 + 'test_test1{le="532"} 2\n'
                 + 'test_test1{le="684"} 2\n'
+                + 'test_test1{le="+Inf"} 2\n'
                 + 'test_test1_count{} 2\n'
                 + 'test_test1_sum{} 110\n';
 
@@ -548,7 +552,8 @@ mod_tape('odd value tests', function (t) {
     });
     var hist = collector.histogram({
         name: 'histo',
-        help: 'histo help'
+        help: 'histo help',
+        buckets: [0.0001]
     });
 
     counter.add(0);
@@ -627,44 +632,95 @@ mod_tape('basic trigger tests', function (t) {
 });
 
 /*
- * Make sure log/linear buckets are working properly.
+ * Test that default buckets are what we expect
  */
-mod_tape('log/linear bucket tests', function (t) {
+mod_tape('default bucket tests', function (t) {
     var collector = mod_artedi.createCollector();
     var histo = collector.histogram({
         name: 'test_histogram',
         help: 'test help'
     });
-    var value;
 
-    /*
-     * Make sure we are copying values from lower to upper buckets properly.
-     * This is a result of MORAY-447, where we saw an overlapping bucket have
-     * its value doubled.
-     *
-     * To test the fix, we will:
-     *  - Create a set of small buckets.
-     *  - Create a set of large buckets.
-     *    - This should copy the values from the small buckets to large buckets.
-     *  - Record a value in the bucket below the smallest of the large buckets.
-     *    - Previously this would result in the lower values being re-copied to
-     *      the smallest of the large buckets (6561).
-     *    - Now it should correctly identify that the 6561 bucket already exists
-     *      meaning lower values should not be re-copied to the overlapping
-     *      bucket.
-     */
-    histo.observe(10); // Record three small values.
-    histo.observe(10);
-    histo.observe(10);
-    histo.observe(6157); // Record a value which will create larger buckets.
-    histo.observe(4788); // Record a value below the smallest larger bucket.
-
-    value = histo.defaultCounter().getValue({'le': 6156});
-    t.equals(value, 4, 'overlapping bucket values copied correctly');
-
+    t.deepEquals(histo.buckets,
+        [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+        'default buckets for histogram with no buckets opt');
 
     t.end();
 });
+
+/*
+ * Test that non-monotonic buckets fail.
+ */
+mod_tape('non-monotonic buckets', function (t) {
+    var collector = mod_artedi.createCollector();
+
+    t.throws(function _badBuckets() {
+        collector.histogram({
+            name: 'test_histogram',
+            help: 'test help',
+            buckets: [ 1, 5, 10, 100, 50, 1000 ]
+        });
+    }, /buckets should be monotonic/,
+        'non-monotonic buckets should not be allowed');
+
+    t.end();
+});
+
+/*
+ * Test that increment works properly.
+ */
+mod_tape('histogram buckets incremented', function (t) {
+    var collector = mod_artedi.createCollector();
+    var histo = collector.histogram({
+        name: 'test_histogram',
+        help: 'test help',
+        buckets: [ 1, 2, 3, 4, 5 ]
+    });
+
+    histo.observe(2);
+
+    // should have updated 2, 3, 4, 5, +Inf
+    collector.collect(mod_artedi.FMT_PROM, function (err2, str2) {
+        t.notOk(err2, 'no error for copying bucket values');
+        t.equals(str2, [
+            '# HELP test_histogram test help',
+            '# TYPE test_histogram histogram',
+            'test_histogram{le="1"} 0',
+            'test_histogram{le="2"} 1',
+            'test_histogram{le="3"} 1',
+            'test_histogram{le="4"} 1',
+            'test_histogram{le="5"} 1',
+            'test_histogram{le="+Inf"} 1',
+            'test_histogram_count{} 1',
+            'test_histogram_sum{} 2',
+            ''
+        ].join('\n'), 'observe(2) incremented all subsequent buckets');
+
+        histo.observe(0.5);
+
+        // should have updated 1, 2, 3, 4, 5, +Inf
+        collector.collect(mod_artedi.FMT_PROM, function (err, str) {
+            t.notOk(err, 'no error for copying bucket values');
+            t.equals(str, [
+                '# HELP test_histogram test help',
+                '# TYPE test_histogram histogram',
+                'test_histogram{le="1"} 1',
+                'test_histogram{le="2"} 2',
+                'test_histogram{le="3"} 2',
+                'test_histogram{le="4"} 2',
+                'test_histogram{le="5"} 2',
+                'test_histogram{le="+Inf"} 2',
+                'test_histogram_count{} 2',
+                'test_histogram_sum{} 2.5',
+                ''
+            ].join('\n'), 'observe(0.5) incremented all subsequent buckets');
+
+            t.end();
+        });
+    });
+
+});
+
 
 mod_tape('gauge expiry tests', function (t) {
     var collector = mod_artedi.createCollector();
