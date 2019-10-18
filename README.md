@@ -141,7 +141,5 @@ These probes could conceivably be used to create more complicated reporting
 tools as well.
 
 ## License
-MPL-v2
 
-## Contributing
-Contributions should be made via the [Joyent Gerrit](https://cr.joyent.us).
+MPL-v2
