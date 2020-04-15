@@ -11,7 +11,7 @@
 #
 NPM_EXEC	:= $(shell which npm)
 NPM		:= npm
-TAP		:= ./node_modules/.bin/tape
+TAPE		:= ./node_modules/.bin/tape
 JSON		:= ./node_modules/.bin/json
 
 #
@@ -41,20 +41,14 @@ include ./tools/mk/Makefile.node_deps.defs
 # Repo-specific targets
 #
 .PHONY: all
-all: $(TAP) $(REPO_DEPS)
-	$(NPM) rebuild
-
-$(TAP): | $(NPM_EXEC)
-	$(NPM) install
-
-$(JSON): | $(NPM_EXEC)
+all $(TAPE) $(JSON): | $(NPM_EXEC)
 	$(NPM) install
 
 CLEAN_FILES += ./node_modules
 
 .PHONY: test
-test: $(TAP)
-	TAP=1 $(TAP) test/*.test.js
+test: $(TAPE)
+	TAP=1 $(TAPE) test/*.test.js
 
 # Before running the 'check' target, we first make sure the 'json' tool is
 # installed locally.
