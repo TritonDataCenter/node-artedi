@@ -1,14 +1,14 @@
 {
   "name": "artedi",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "a metric client library",
   "main": "lib/collector.js",
   "dependencies": {
-    "assert-plus": "1.0.0",
-    "dtrace-provider": "0.8.6",
-    "jsprim": "1.4.0",
-    "vasync": "1.6.4",
-    "verror": "1.10.0"
+    "assert-plus": "^1.0.0",
+    "dtrace-provider": "^0.8.8",
+    "jsprim": "^2.0.0",
+    "vasync": "^1.6.4",
+    "verror": "^1.10.0"
   },
   "devDependencies": {
     "eslint": "2.13.1",
