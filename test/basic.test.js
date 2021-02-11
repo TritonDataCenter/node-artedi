@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Copyright (c) 2018, Joyent, Inc.
+ * Copyright 2021 Joyent, Inc.
  */
 
 var mod_tape = require('tape');
@@ -239,6 +239,7 @@ mod_tape('absolute gauge tests', function (t) {
  * A few things to test:
  * - No metrics                                 x
  * - Ordering of labels (it shouldn't matter)   x
+ * - Unescaped label values                     x
  */
 mod_tape('counter serialization tests', function (t) {
     var collector = mod_artedi.createCollector();
@@ -301,6 +302,23 @@ mod_tape('counter serialization tests', function (t) {
             collector.collect(mod_artedi.FMT_PROM, function (err, str) {
                 t.notOk(err, 'no error for reversed labels');
                 t.equals(str, lots, 'reversed label add');
+                cb();
+            });
+        },
+
+        function (_, cb) {
+            // check for invalid strings
+            counter.increment({
+                badquote: '"quote',
+                badnewline: 'newline\n',
+                badbackslash: '\\backslash'
+            });
+            expected = expected + 'bot_demerits{trollcon="4",user="kkantor"} ' +
+                '1001\nbot_demerits{badquote="\\"quote",' +
+                'badnewline="newline\\n",badbackslash="\\\\backslash"} 1\n';
+            collector.collect(mod_artedi.FMT_PROM, function (err, str) {
+                t.notOk(err, 'error escaping special characters');
+                t.equals(str, expected, 'special character escaping failed');
                 cb();
             });
         },
