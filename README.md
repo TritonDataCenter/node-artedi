@@ -93,8 +93,8 @@ artedi includes some useful DTrace probes. The full listing of probes and their
 arguments can be found in the [lib/provider.js](./lib/provider.js) file.
 
 In this first example artedi is observing the latency of queries to three
-Postgres instances (using joyent/pgstatsmon). The latency observations include
-the name of the backend Postgres instance.
+Postgres instances (using [TritonDataCenter/pgstatsmon](https://github.com/TritonDataCenter/pgstatsmon)).
+The latency observations include the name of the backend Postgres instance.
 
 We can create a graph of each Postgres backend's latency using built-in DTrace
 aggregation:
