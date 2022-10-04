@@ -4,6 +4,14 @@
 
 None
 
+## 2.0.4
+
+- TRITON-2325 CVE-2021-3918: json-schema is vulnerable to Prototype Pollution
+
+## 2.0.3
+
+- TRITON-2254 Change joyMattermostNotification to joySlackNotification
+
 ## 2.0.2
 
 - MANTA-5184 bump dtrace-provider dep and relax other deps
